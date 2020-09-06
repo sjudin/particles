@@ -1,0 +1,8 @@
+
+1. Some sort of physics engine that can calculate collisions etc
+
+2. Some test with a bunch of rects bouncing inside a container
+
+3. Implement other shapes (Triangles, maybe general shapes?)
+
+4. Render images inside of rects
