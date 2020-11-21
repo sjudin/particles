@@ -4,16 +4,45 @@
 #include <stdlib.h>
 #include <vector>
 #include "physics.h"
+#include <random>
+#include <chrono>
+#include <memory>
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
-int main(int argc, char* argv[])
+struct ScopedMicroTimer
+{
+    std::chrono::high_resolution_clock::time_point t0;
+    std::function<void(int)> cb;
+    
+    ScopedMicroTimer(std::function<void(int)> callback)
+        : t0(std::chrono::high_resolution_clock::now())
+        , cb(callback)
+    {
+    }
+    ~ScopedMicroTimer(void)
+    {
+        auto  t1 = std::chrono::high_resolution_clock::now();
+        auto micros = std::chrono::duration_cast
+            <std::chrono::microseconds>(t1-t0).count();
+ 
+        cb(micros);
+    }
+};
+
+struct Results
+{
+    void operator()(int us)
+    {
+        std::cout << "Microseconds: " << us << std::endl;
+    }
+};
+
+
+int main()
 {
     Window window("Test Window", WINDOW_WIDTH, WINDOW_HEIGHT);
-
-    // Rect rect1(Eigen::Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2), 25, 25, 255, 255, 255, 255);
-    // Rect rect2(Eigen::Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2-5), 25, 25, 0, 255, 255, 255);
 
     // Edges of arena
     Rect ground(Eigen::Vector2f(0, WINDOW_HEIGHT-10), WINDOW_WIDTH, 10, 0, 0, 0, 255);
@@ -25,39 +54,32 @@ int main(int argc, char* argv[])
     Rect rightWall(Eigen::Vector2f(WINDOW_WIDTH-10, 0), 10, WINDOW_HEIGHT, 0, 0, 0, 255);
     rightWall.isRigid = true;
 
-    std::vector<Entity*> entities;
-    entities.push_back(&ground);
-    entities.push_back(&ceiling);
-    entities.push_back(&leftWall);
-    entities.push_back(&rightWall);
+    std::vector<Rect*> statics;
+
+    statics.push_back(&ground);
+    statics.push_back(&ceiling);
+    statics.push_back(&leftWall);
+    statics.push_back(&rightWall);
+
+    std::default_random_engine generator;
+    std::uniform_real_distribution<float> distributionX(20, WINDOW_WIDTH-20);
+    std::uniform_real_distribution<float> distributionY(20, WINDOW_HEIGHT-20);
+
+    // float xPos = distributionX(generator);
+    // float yPos = distributionY(generator);
+
+    std::vector<Rect*> rects;
+
+    // Make sure that these dont go out of scope, use a unique ptr or something?
+    // Rect r = Rect(Eigen::Vector2f(xPos, yPos), 5, 5, 0, 255, 255, 255);
+
+    for(u_int16_t i = 0; i < 100; i++) {
+        float xPos = distributionX(generator);
+        float yPos = distributionY(generator);
+
+        rects.push_back(new Rect(Eigen::Vector2f(xPos, yPos), 5, 5, 0, 0, 0, 255));
+    }
     
-    Rect rect1(Eigen::Vector2f(50, WINDOW_HEIGHT/2), 25, 25, 255, 255, 255, 255);
-    rect1.speed = Eigen::Vector2f::Random();
-    rect1.acc = Eigen::Vector2f::Random();
-    rect1.isRigid = false;
-    Rect rect2(Eigen::Vector2f(100, WINDOW_HEIGHT/2-5), 25, 25, 0, 255, 255, 255);
-    rect2.speed = Eigen::Vector2f::Random();
-    rect1.acc = Eigen::Vector2f::Random();
-    rect2.isRigid = false;
-    Rect rect3(Eigen::Vector2f(150, WINDOW_HEIGHT/2-5), 25, 25, 0, 255, 255, 255);
-    rect3.speed = Eigen::Vector2f::Random();
-    rect1.acc = Eigen::Vector2f::Random();
-    rect3.isRigid = false;
-    Rect rect4(Eigen::Vector2f(200, WINDOW_HEIGHT/2-5), 25, 25, 0, 255, 255, 255);
-    rect4.speed = Eigen::Vector2f::Random();
-    rect1.acc = Eigen::Vector2f::Random();
-    rect4.isRigid = false;
-    Rect rect5(Eigen::Vector2f(250, WINDOW_HEIGHT/2-5), 25, 25, 0, 255, 255, 255);
-    rect5.speed = Eigen::Vector2f::Random();
-    rect1.acc = Eigen::Vector2f::Random();
-    rect5.isRigid = false;
-
-    entities.push_back(&rect1);
-    entities.push_back(&rect2);
-    entities.push_back(&rect3);
-    entities.push_back(&rect4);
-    entities.push_back(&rect5);
-
     float dt = 0.5;
     int x,y;
 
@@ -65,19 +87,25 @@ int main(int argc, char* argv[])
     {
         // Draw rect
         SDL_GetMouseState(&x, &y);
-        // dynamic_cast<Rect*>(entities[5])->update(Eigen::Vector2f(x,y));
-        physics::collide(entities);
 
-        for(unsigned int i = 0; i < entities.size(); i++)
+        for(unsigned int i = 0; i < rects.size(); i++)
         {
-            Rect* r = dynamic_cast<Rect*>(entities[i]);
-            r->speed += r->acc*dt;
-            r->update(r->getPos() + r->speed*dt);
-            // std::cout << r->pos << std::endl << std::endl;
+            rects[i]->speed += rects[i]->acc*dt;
+            rects[i]->update(rects[i]->getPos() + rects[i]->speed*dt);
         }
-        for(Entity* e : entities)
-            e->draw(window.getRenderer());
 
+        Results results;
+        physics::collide(rects, statics);
+        {
+            // ScopedMicroTimer timer(results);
+
+            physics::collide(rects, rects);
+        }
+        physics::checkProximity(rects, Eigen::Vector2f(x,y));
+
+        // Update moving and static parts
+        for(Rect* r : rects) r->draw(window.getRenderer());
+        for(Rect* r : statics) r->draw(window.getRenderer());
 
         // Clear the window
         window.clear();

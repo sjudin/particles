@@ -3,50 +3,54 @@
 namespace physics
 {
     
-    void collide(std::vector<Entity*> entities) {
+    void collide(std::vector<Rect*>& rects_under_test, std::vector<Rect*>& comp_rects) {
         // Choose the current entity and go through all others
         // NOTE: Complexity is pretty bad (O(n^2))
-        for (unsigned int i = 0; i < entities.size(); i++) {
-            for (unsigned int j = 0; j < entities.size(); j++) {
-                // Dont check collision with ones self
-                if (i != j) 
-                    if (hasCollided(entities[i], entities[j]) == true && !entities[i]->isRigid) 
-                    {
-                        float nom   = (entities[i]->speed - entities[j]->speed).dot(entities[i]->pos - entities[j]->pos);
-                        float denom = (entities[i]->pos - entities[j]->pos).squaredNorm();
-                        Eigen::Vector2f last  = (entities[i]->pos - entities[j]->pos);
-
-                        // Calculate perfect elastic collision with m=1
-                        entities[i]->speed = -(entities[i]->speed - nom/denom*last);
-                    }
-                              
+        for (u_int16_t i = 0; i < rects_under_test.size(); i++) {
+            for (u_int16_t j = 0; j < comp_rects.size(); j++) {
+                // Check that we are not comparing rects with themselves
+                if (!(rects_under_test[i] == comp_rects[j]))
+                    if (hasCollided(rects_under_test[i], comp_rects[j]))
+                        rects_under_test[i]->speed *= -1;
             }
         }
     }
 
-    bool hasCollided(Entity* e1, Entity* e2)
-    {
-        // Cast to Rect, (Should be more general
-        // than this in the future, will need to refactor
-        Rect* r1 = dynamic_cast<Rect*>(e1);
-        Rect* r2 = dynamic_cast<Rect*>(e2);
-
+    bool hasCollided(Rect* r1, Rect* r2) {
         // If r1 and r2 are not close enough, no collision
         // has occured
-        Eigen::Vector2f r1Mid = r1->getPos() 
-          + Eigen::Vector2f(r1->getRect()->w/2, 
-                            r1->getRect()->h/2); // r1 midpoint
+        //
+        Eigen::Vector2f left1 = r1->getPos();
+        Eigen::Vector2f right1 = r1->getPos() + 
+            Eigen::Vector2f(r1->getRect()->w, r1->getRect()->h);
 
-        Eigen::Vector2f r2Mid = r2->getPos() 
-          + Eigen::Vector2f(r2->getRect()->w/2, 
-                            r2->getRect()->h/2); // r2 midpoint
+        Eigen::Vector2f left2 = r2->getPos();
+        Eigen::Vector2f right2 = r2->getPos() + 
+            Eigen::Vector2f(r2->getRect()->w, r2->getRect()->h);
 
-        r1Mid = r2Mid - r1Mid;
-        if ( ( std::abs(r1Mid(0,0)) > r1->getRect()->w/2 + r2->getRect()->w/2 ) ||
-             ( std::abs(r1Mid(1,0)) > r1->getRect()->h/2 + r2->getRect()->h/2 ) )
-            return false;
-
+        // If one rectangle is on left side of other 
+        if (left1(0) >= right2(0) || left2(0) >= right1(0)) 
+            return false; 
+      
+        // If one rectangle is above other 
+        if (left1(1) >= right2(1) || left2(1) >= right1(1)) 
+            return false; 
+      
         return true;
+    }
+
+    void checkProximity(std::vector<Rect*>& rects, Eigen::Vector2f mousePos) {
+        
+        for(Rect* r : rects) {
+            if((r->getPos() - mousePos).norm() < 50) {
+                r->setColor(255, 0, 0);
+                r->speed *= 2.f;
+            }
+            else {
+                r->setColor(0, 0, 255);
+            }
+        }
+
     }
 
 }

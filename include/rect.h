@@ -14,6 +14,9 @@ public:
 
     inline SDL_Rect* getRect() { return &rect; };
 
+    void setColor(int r, int g, int b);
+    ~Rect();
+
 private:
     int _w, _h;
     int _r, _g, _b, _a;

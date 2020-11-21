@@ -1,6 +1,6 @@
 #pragma once
-#include <Eigen/Dense>
-#include <SDL.h>
+#include <eigen3/Eigen/Dense>
+#include <SDL2/SDL.h>
 
 /**
  * Base class for atomic objects

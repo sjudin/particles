@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.5)
 project(particles)
 set(EXEC_NAME "test")
 
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+
+find_package(Eigen3 REQUIRED)
+
 set(SOURCES 
     src/window.cpp 
     include/window.h
@@ -18,16 +23,14 @@ set(SOURCES
 )
 
 set(CMAKE_CXX_COMPILER "g++")
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
+# add_compile_options(-O3 -Wall -Wextra -Wpedantic)
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/src
-    D:/cpp_projects/Development/SDL2_MinGW_32Bit/include/SDL2
-    D:/cpp_projects/Development/eigen
 )
 
 add_executable(
@@ -38,14 +41,6 @@ add_executable(
 
 target_link_libraries(
     ${EXEC_NAME} 
-    mingw32
-    D:/cpp_projects/Development/SDL2_MinGW_32Bit/lib/libSDL2main.a
-    D:/cpp_projects/Development/SDL2_MinGW_32Bit/bin/SDL2.dll
+    ${SDL2_LIBRARIES}
 )
-
-target_include_directories(
-    ${EXEC_NAME} 
-    PRIVATE 
-    D:/cpp_projects/Development/SDL2_MinGW_32Bit/include
-    D:/cpp_projects/Development/eigen 
-)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
