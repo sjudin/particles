@@ -73,11 +73,11 @@ int main()
     // Make sure that these dont go out of scope, use a unique ptr or something?
     // Rect r = Rect(Eigen::Vector2f(xPos, yPos), 5, 5, 0, 255, 255, 255);
 
-    for(u_int16_t i = 0; i < 100; i++) {
+    for(u_int16_t i = 0; i < 800; i++) {
         float xPos = distributionX(generator);
         float yPos = distributionY(generator);
 
-        rects.push_back(new Rect(Eigen::Vector2f(xPos, yPos), 5, 5, 0, 0, 0, 255));
+        rects.push_back(new Rect(Eigen::Vector2f(xPos, yPos), 4, 4, 0, 0, 0, 255));
     }
     
     float dt = 0.5;
@@ -95,11 +95,11 @@ int main()
         }
 
         Results results;
-        physics::collide(rects, statics);
+        physics::collide(rects, statics, dt);
         {
             // ScopedMicroTimer timer(results);
 
-            physics::collide(rects, rects);
+            physics::collide(rects, rects, dt);
         }
         physics::checkProximity(rects, Eigen::Vector2f(x,y));
 

@@ -73,6 +73,6 @@ SDL_Renderer* Window::getRenderer()
 void Window::clear() const
 {
     SDL_RenderPresent(_renderer);
-    SDL_SetRenderDrawColor(_renderer, 0, 0, 200, 255);
+    SDL_SetRenderDrawColor(_renderer, 205, 207, 190, 10);
     SDL_RenderClear(_renderer);
 }

@@ -24,7 +24,8 @@ namespace physics
     // ie reverses their speed if they have collided
     void collide(std::vector<Entity>& entities);
     // void collide(std::vector<Rect>& rects);
-    void collide(std::vector<Rect*>& rects_under_test, std::vector<Rect*>& comp_rects);
+    void collide(std::vector<Rect*>& rects_under_test,
+            std::vector<Rect*>& comp_rects, float dt);
     void checkProximity(std::vector<Rect*>& rects, Eigen::Vector2f mousePos);
 
     // Checks if two entities have collided
@@ -34,5 +35,5 @@ namespace physics
     //          2: Top wall 
     //          3: Bottom wall 
     // bool hasCollided(Entity& e1, Entity& e2);
-    bool hasCollided(Rect* r1, Rect* r2);
+    bool hasCollided(Rect* r1, Rect* r2, float dt);
 }

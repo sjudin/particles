@@ -25,8 +25,8 @@ set(SOURCES
 set(CMAKE_CXX_COMPILER "g++")
 
 
-# add_compile_options(-O3 -Wall -Wextra -Wpedantic)
-add_compile_options(-Wall -Wextra -Wpedantic)
+add_compile_options(-O3 -Wall -Wextra -Wpedantic)
+# add_compile_options(-Wall -Wextra -Wpedantic)
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
